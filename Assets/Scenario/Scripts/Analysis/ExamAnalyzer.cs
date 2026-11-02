@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ScenarioBuilder
 {
-    /// 100 − штрафы: шаг с нарушением (Failed) — 10, пропущенный (Skipped) — 5.
+    /// 100 − штрафы: шаг с нарушением или Failed — 10, пропущенный (Skipped) — 5.
     /// На журнале тренировки шаг с нарушением тоже считается проваленным — как было бы на экзамене.
     public class ExamAnalyzer : ResultAnalyzer
     {
@@ -21,7 +21,7 @@ namespace ScenarioBuilder
             foreach (var id in ids)
             {
                 var last = LastResult(journal, id);
-                bool failed = Violations(journal, id) > 0;
+                bool failed = Violations(journal, id) > 0 || last == nameof(StepStatus.Failed);
                 int p = failed ? failedPenalty : last == nameof(StepStatus.Completed) ? 0 : skippedPenalty;
                 string state = failed ? nameof(StepStatus.Failed) : last ?? "нет итога";
                 if (!failed && last == null) r.warnings.Add($"{id}: нет итогового статуса — засчитан как пропущенный.");

@@ -43,7 +43,7 @@ namespace ScenarioBuilder
         public OutOfTurnPolicy outOfTurn = OutOfTurnPolicy.Violation;
         [Tooltip("Анализатор, которым оценивается прохождение в этом режиме")]
         public ResultAnalyzer analyzer;
-        [Tooltip("Действие, после которого прохождение заканчивается досрочно (например, выход из цеха). Незавершённые шаги получают Skipped. Пусто — не используется.")]
+        [Tooltip("Действие, после которого прохождение заканчивается досрочно (например, выход из цеха). Незавершённые шаги получают Failed. Пусто — не используется.")]
         public ActionSource finishAction;
 
         protected ScenarioRunner Runner { get; private set; }
@@ -143,10 +143,10 @@ namespace ScenarioBuilder
         {
             var unfinished = status.Keys.Where(s => status[s] is StepStatus.Pending or StepStatus.Active).ToList();
             if (unfinished.Count == 0) return; // этим же действием выполнен последний шаг — обычное завершение
-            foreach (var step in unfinished) SetResult(step, StepStatus.Skipped);
+            foreach (var step in unfinished) SetResult(step, StepStatus.Failed); // ушёл сам — шаги не выполнены, а не пропущены по порогу
             running.Clear();
             nextGroup = groups.Count;
-            Runner.Message($"{title}: прохождение завершено досрочно, незавершённые шаги пропущены.");
+            Runner.Message($"{title}: прохождение завершено досрочно, незавершённые шаги провалены.");
         }
 
         IEnumerable<Step> Batch(GroupRun run)

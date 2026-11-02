@@ -183,7 +183,7 @@ namespace ScenarioBuilder.Tests
         }
 
         [Test]
-        public void FinishAction_EndsScenario_UnfinishedStepsSkipped()
+        public void FinishAction_EndsScenario_UnfinishedStepsFailed()
         {
             var a = Enumerable.Range(1, 3).Select(i => Make<ActionSource>("a" + i)).ToArray();
             var s = Enumerable.Range(0, 3).Select(i => MakeStep("S" + i, a[i])).ToArray();
@@ -198,10 +198,11 @@ namespace ScenarioBuilder.Tests
             mode.Handle(a[2]);
 
             Assert.IsFalse(mode.IsRunning);
-            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[1]));
-            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[1]));
+            Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[2]));
             Assert.IsFalse(runner.Journal.Any(e => e.type == LogTypes.Violation));
-            Assert.AreEqual(90, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+            Assert.AreEqual(80, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+            Assert.AreEqual(10, Make<TrainingAnalyzer>("ta").Analyze(runner.Journal).score);
         }
 
         [Test]
