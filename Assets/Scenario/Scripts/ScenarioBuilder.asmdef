@@ -1,0 +1,8 @@
+{
+    "name": "ScenarioBuilder",
+    "rootNamespace": "ScenarioBuilder",
+    "references": [
+        "UnityEngine.UI"
+    ],
+    "autoReferenced": true
+}
