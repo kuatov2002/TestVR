@@ -192,7 +192,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -318,7 +318,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S03
-  title: "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u043F\u0438\u0442\u0430\u043D\u0438\u0435"
+  title: "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u043F\u0438\u0442\u0430\u043D\u0438\u0435
+    (\u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0430\u0442\u0435\u043B\u044C
+    \u0441\u043F\u0440\u0430\u0432\u0430)"
   actions:
   - {fileID: 693072475}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -362,7 +364,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S12
   title: "\u041F\u043E\u043A\u0438\u043D\u0443\u0442\u044C \u0446\u0435\u0445 \u0447\u0435\u0440\u0435\u0437
-    \u0432\u044B\u0445\u043E\u0434"
+    \u0432\u044B\u0445\u043E\u0434 (\u0431\u0435\u043B\u0430\u044F \u0437\u043E\u043D\u0430)"
   actions:
   - {fileID: 1974837120}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -551,7 +553,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -812,8 +814,12 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "WASD \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435. \u0421\u043F\u0440\u0430\u0432\u0430
-    \u2014 \u043A\u043D\u043E\u043F\u043A\u0438 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0439."
+  m_Text: "WASD \u2014 \u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435. \u041A\u043D\u043E\u043F\u043A\u0438
+    \u0438 \u043F\u0435\u0440\u0435\u043A\u043B\u044E\u0447\u0430\u0442\u0435\u043B\u044C
+    \u0441\u043F\u0440\u0430\u0432\u0430 \u2014 \u043C\u044B\u0448\u044C\u044E.\n\u0426\u0432\u0435\u0442\u043D\u044B\u0435
+    \u0437\u043E\u043D\u044B \u2014 \u0432\u0441\u0442\u0430\u0442\u044C \u043D\u0430
+    \u043D\u0438\u0445; \u044F\u0449\u0438\u043A\u0438 \u0438 \u043A\u043E\u043B\u043E\u043A\u043E\u043B
+    \u2014 \u043F\u043E\u0434\u043E\u0439\u0442\u0438 \u0432\u043F\u043B\u043E\u0442\u043D\u0443\u044E."
 --- !u!222 &226299844
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1262,7 +1268,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Scrollbar
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1720,7 +1726,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S08
   title: "\u0421\u0434\u0435\u043B\u0430\u0442\u044C \u0437\u0430\u043F\u0438\u0441\u044C
-    \u0432 \u0436\u0443\u0440\u043D\u0430\u043B\u0435"
+    \u0432 \u0436\u0443\u0440\u043D\u0430\u043B\u0435 (\u043A\u043D\u043E\u043F\u043A\u0430)"
   actions:
   - {fileID: 1366709528}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -1784,7 +1790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Scrollbar
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -1815,7 +1821,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 87684895}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.2
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2072,7 +2078,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2187,8 +2193,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S10
-  title: "\u041F\u043E\u0434\u0430\u0442\u044C \u0441\u0438\u0433\u043D\u0430\u043B
-    \u043A\u043E\u043B\u043E\u043A\u043E\u043B\u043E\u043C"
+  title: "\u041F\u043E\u0434\u0430\u0442\u044C \u0441\u0438\u0433\u043D\u0430\u043B:
+    \u043F\u043E\u0434\u043E\u0439\u0442\u0438 \u043A \u043A\u043E\u043B\u043E\u043A\u043E\u043B\u0443"
   actions:
   - {fileID: 781239533}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -2295,7 +2301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.7}
+  m_Color: {r: 0.08, g: 0.08, b: 0.1, a: 0.92}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2457,6 +2463,7 @@ MonoBehaviour:
   title: "\u042D\u043A\u0437\u0430\u043C\u0435\u043D"
   groups:
   - name: "1. \u041F\u043E\u0434\u0433\u043E\u0442\u043E\u0432\u043A\u0430"
+    withPrevious: 0
     steps:
     - step: {fileID: 689087564}
       withPrevious: 0
@@ -2467,6 +2474,7 @@ MonoBehaviour:
     - step: {fileID: 1114955731}
       withPrevious: 1
   - name: "2. \u0417\u0430\u043F\u0443\u0441\u043A"
+    withPrevious: 0
     steps:
     - step: {fileID: 724867857}
       withPrevious: 0
@@ -2477,6 +2485,7 @@ MonoBehaviour:
     - step: {fileID: 376432850}
       withPrevious: 0
   - name: "3. \u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u0435"
+    withPrevious: 0
     steps:
     - step: {fileID: 1456883056}
       withPrevious: 0
@@ -2577,7 +2586,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2731,7 +2740,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -2984,8 +2993,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S02
-  title: "\u0412\u0437\u044F\u0442\u044C \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442
-    (\u0441\u0438\u043D\u0438\u0439 \u044F\u0449\u0438\u043A)"
+  title: "\u0412\u0437\u044F\u0442\u044C \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442:
+    \u043F\u043E\u0434\u043E\u0439\u0442\u0438 \u043A \u0441\u0438\u043D\u0435\u043C\u0443
+    \u044F\u0449\u0438\u043A\u0443 (\u043D\u0435 \u043A \u043E\u0440\u0430\u043D\u0436\u0435\u0432\u043E\u043C\u0443!)"
   actions:
   - {fileID: 277093997}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -3107,7 +3117,7 @@ RectTransform:
   m_Father: {fileID: 892488830}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
@@ -3283,7 +3293,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S01
-  title: "\u041D\u0430\u0434\u0435\u0442\u044C \u0421\u0418\u0417"
+  title: "\u041D\u0430\u0434\u0435\u0442\u044C \u0421\u0418\u0417 (\u043A\u043D\u043E\u043F\u043A\u0430
+    \u0441\u043F\u0440\u0430\u0432\u0430)"
   actions:
   - {fileID: 881604589}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -3381,7 +3392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -3612,7 +3623,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S05
-  title: "\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u043C\u0430\u043D\u043E\u043C\u0435\u0442\u0440"
+  title: "\u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u043C\u0430\u043D\u043E\u043C\u0435\u0442\u0440
+    (\u043A\u043D\u043E\u043F\u043A\u0430)"
   actions:
   - {fileID: 491660097}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -3897,7 +3909,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -4073,7 +4085,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -4848,9 +4860,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S04
-  title: "\u041E\u0441\u043C\u043E\u0442\u0440\u0435\u0442\u044C \u0441\u043A\u043B\u0430\u0434,
-    \u043D\u0435 \u0437\u0430\u0445\u043E\u0434\u044F \u0432 \u043E\u043F\u0430\u0441\u043D\u0443\u044E
-    \u0437\u043E\u043D\u0443"
+  title: "\u041E\u0441\u043C\u043E\u0442\u0440\u0435\u0442\u044C \u0441\u043A\u043B\u0430\u0434
+    (\u0437\u0435\u043B\u0451\u043D\u0430\u044F \u0437\u043E\u043D\u0430), \u043D\u0435
+    \u0437\u0430\u0445\u043E\u0434\u044F \u0432 \u043E\u043F\u0430\u0441\u043D\u0443\u044E
+    (\u043A\u0440\u0430\u0441\u043D\u0443\u044E)"
   actions:
   - {fileID: 1229837721}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -5055,7 +5068,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Dropdown
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -5597,7 +5610,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -6054,8 +6067,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S06
-  title: "\u041F\u0440\u043E\u0439\u0442\u0438 \u043A \u043F\u0443\u043B\u044C\u0442\u0443
-    \u0447\u0435\u0440\u0435\u0437 \u043F\u0440\u043E\u0445\u043E\u0434\u043D\u0443\u044E"
+  title: "\u041F\u0440\u043E\u0439\u0442\u0438 \u043A \u043F\u0443\u043B\u044C\u0442\u0443:
+    \u0441\u043D\u0430\u0447\u0430\u043B\u0430 \u043F\u0440\u043E\u0445\u043E\u0434\u043D\u0430\u044F
+    (\u0436\u0451\u043B\u0442\u0430\u044F), \u043F\u043E\u0442\u043E\u043C \u043F\u0443\u043B\u044C\u0442
+    (\u0433\u043E\u043B\u0443\u0431\u043E\u0439)"
   actions:
   - {fileID: 702707710}
   - {fileID: 1628178232}
@@ -6155,7 +6170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -6387,7 +6402,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S11
-  title: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443"
+  title: "\u041E\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443
+    (\u043A\u043D\u043E\u043F\u043A\u0430 \xAB\u0421\u0442\u043E\u043F\xBB)"
   actions:
   - {fileID: 781752155}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -6466,6 +6482,8 @@ MonoBehaviour:
   resultPanel: {fileID: 520860562}
   logPanel: {fileID: 892488829}
   analyzerDropdown: {fileID: 1171310126}
+  violationMessageTime: 6
+  infoMessageTime: 3
 --- !u!114 &1370446008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7055,9 +7073,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S09
-  title: "\u041E\u0431\u043E\u0439\u0442\u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443,
-    \u043D\u0435 \u0437\u0430\u0445\u043E\u0434\u044F \u0432 \u043E\u043F\u0430\u0441\u043D\u0443\u044E
-    \u0437\u043E\u043D\u0443"
+  title: "\u041E\u0431\u043E\u0439\u0442\u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443
+    (\u0444\u0438\u043E\u043B\u0435\u0442\u043E\u0432\u0430\u044F \u0437\u043E\u043D\u0430),
+    \u043D\u0435 \u0437\u0430\u0445\u043E\u0434\u044F \u0432 \u043E\u043F\u0430\u0441\u043D\u0443\u044E"
   actions:
   - {fileID: 1225995621}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -7207,7 +7225,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1584548763}
   - {fileID: 335070780}
   - {fileID: 1755744275}
   - {fileID: 1928238368}
@@ -7533,11 +7550,11 @@ Transform:
   m_GameObject: {fileID: 1584548762}
   serializedVersion: 2
   m_LocalRotation: {x: 0.43837115, y: -0, z: -0, w: 0.89879405}
-  m_LocalPosition: {x: 0, y: 2.6, z: -9}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1488087847}
+  m_Father: {fileID: 1962768821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!102 &1584548764
 TextMesh:
@@ -7547,7 +7564,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1584548762}
-  m_Text: "\u0418\u0433\u0440\u043E\u043A (WASD)"
+  m_Text: "\u0412\u044B (WASD)"
   m_OffsetZ: 0
   m_CharacterSize: 0.11
   m_LineSpacing: 1
@@ -8075,8 +8092,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ScenarioBuilder::ScenarioBuilder.ActionStep
   id: S07
-  title: "\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443
-    (\u043F\u0438\u0442\u0430\u043D\u0438\u0435 \u0432\u043A\u043B\u044E\u0447\u0435\u043D\u043E)"
+  title: "\u041D\u0430\u0436\u0430\u0442\u044C \xAB\u041F\u0443\u0441\u043A\xBB \u2014
+    \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u0440\u0438 \u0432\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u043E\u043C
+    \u043F\u0438\u0442\u0430\u043D\u0438\u0438"
   actions:
   - {fileID: 151987288}
   orderMessage: "\u041D\u0430\u0440\u0443\u0448\u0435\u043D \u043F\u043E\u0440\u044F\u0434\u043E\u043A
@@ -9504,7 +9522,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 1, z: -9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1584548763}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1974837119
@@ -9824,10 +9843,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 931356063}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2101924912
 MonoBehaviour:
@@ -9903,6 +9922,7 @@ MonoBehaviour:
   title: "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043A\u0430"
   groups:
   - name: "\u0412\u0441\u0435 \u0448\u0430\u0433\u0438"
+    withPrevious: 0
     steps:
     - step: {fileID: 689087564}
       withPrevious: 0
@@ -10076,7 +10096,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
