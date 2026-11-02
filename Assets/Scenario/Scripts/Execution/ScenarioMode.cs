@@ -55,6 +55,7 @@ namespace ScenarioBuilder
         readonly Dictionary<Step, StepStatus> status = new();
         readonly Dictionary<Step, StepGroup> groupOf = new();
         readonly Dictionary<StepGroup, int> violations = new();
+        readonly Dictionary<Step, int> stepViolations = new();
         readonly List<GroupRun> running = new();
         int nextGroup;
 
@@ -70,6 +71,7 @@ namespace ScenarioBuilder
             status.Clear();
             groupOf.Clear();
             violations.Clear();
+            stepViolations.Clear();
             running.Clear();
             foreach (var g in groups)
                 foreach (var e in g.steps.Where(e => e.step))
@@ -79,7 +81,8 @@ namespace ScenarioBuilder
                 }
             IsRunning = true;
             nextGroup = 0;
-            Runner.Log(LogTypes.ScenarioStarted, null, title, new LogField("steps", status.Count));
+            Runner.Log(LogTypes.ScenarioStarted, null, title,
+                new LogField("steps", status.Count), new LogField("startedAt", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             Advance();
         }
 
@@ -109,7 +112,8 @@ namespace ScenarioBuilder
         protected void SetResult(Step step, StepStatus result)
         {
             status[step] = result;
-            Runner.Log(LogTypes.StepFinished, step, result.ToString(), new LogField("group", groupOf[step].name));
+            Runner.Log(LogTypes.StepFinished, step, result.ToString(),
+                new LogField("group", groupOf[step].name), new LogField("violations", stepViolations.GetValueOrDefault(step)));
             if (result == StepStatus.Completed) Runner.Message($"Выполнено: {step.title}", false);
         }
 
@@ -123,7 +127,9 @@ namespace ScenarioBuilder
         void Violate(Step step, string reason)
         {
             violations[groupOf[step]] = ViolationsIn(groupOf[step]) + 1;
-            Runner.Log(LogTypes.Violation, step, reason, new LogField("group", groupOf[step].name));
+            stepViolations[step] = stepViolations.GetValueOrDefault(step) + 1;
+            Runner.Log(LogTypes.Violation, step, reason,
+                new LogField("group", groupOf[step].name), new LogField("attempt", stepViolations[step]));
             OnViolation(step, reason);
         }
 

@@ -39,12 +39,12 @@ namespace ScenarioBuilder
     /// Типы записей, которые пишет базовое исполнение. Свои типы можно добавлять где угодно.
     public static class LogTypes
     {
-        public const string ScenarioStarted = "ScenarioStarted"; // result = режим, data: steps
+        public const string ScenarioStarted = "ScenarioStarted"; // result = режим, data: steps, startedAt
         public const string GroupStarted = "GroupStarted";       // result = группа
         public const string Action = "Action";                   // result = название действия
         public const string StepActivated = "StepActivated";
-        public const string Violation = "Violation";             // result = причина
-        public const string StepFinished = "StepFinished";       // result = Completed | Failed | Skipped, data: group
+        public const string Violation = "Violation";             // result = причина, data: group, attempt (номер неудачной попытки)
+        public const string StepFinished = "StepFinished";       // result = Completed | Failed | Skipped, data: group, violations
         public const string ScenarioFinished = "ScenarioFinished";
     }
 }

@@ -24,9 +24,11 @@ namespace ScenarioBuilder
 
         public abstract AnalysisResult Analyze(IReadOnlyList<LogEntry> journal);
 
-        /// Шаги в порядке первого упоминания в журнале.
+        /// Шаги в порядке активации, затем те, что так и не активировались (пропущенные, нарушенные вне очереди).
         protected static List<string> StepIds(IReadOnlyList<LogEntry> journal) =>
-            journal.Where(e => !string.IsNullOrEmpty(e.stepId)).Select(e => e.stepId).Distinct().ToList();
+            journal.Where(e => !string.IsNullOrEmpty(e.stepId))
+                .OrderBy(e => e.type == LogTypes.StepActivated ? 0 : 1) // OrderBy стабилен — внутри групп сохраняется порядок журнала
+                .Select(e => e.stepId).Distinct().ToList();
 
         /// Общее число шагов сценария; если в журнале его нет — число упомянутых шагов и предупреждение.
         protected static int StepCount(IReadOnlyList<LogEntry> journal, AnalysisResult result)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace ScenarioBuilder.Tests
 {
@@ -159,6 +160,50 @@ namespace ScenarioBuilder.Tests
             var failed = runner.Journal.Single(e => e.type == LogTypes.StepFinished && e.stepId == "S1");
             Assert.AreEqual("Failed", failed.result);
             Assert.AreEqual("2", failed.Get("group"));
+        }
+
+        class BrokenLogger : ScenarioLogger
+        {
+            public override void Write(LogEntry entry) => throw new System.IO.IOException("disk full");
+        }
+
+        [Test]
+        public void BrokenLogger_DoesNotStopScenario()
+        {
+            var a = Make<ActionSource>("a");
+            var s = MakeStep("S0", a);
+            var mode = Make<TrainingMode>("training");
+            mode.groups.Add(Group("all", (s, false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.loggers.Add(Make<BrokenLogger>("logger"));
+            LogAssert.ignoreFailingMessages = true;
+
+            runner.Run(mode);
+            mode.Handle(a);
+
+            LogAssert.ignoreFailingMessages = false;
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(StepStatus.Completed, mode.StatusOf(s));
+        }
+
+        [Test]
+        public void TrainingAnalyzer_PointsAreConfigurable()
+        {
+            var a = Make<ActionSource>("a");
+            var f = Make<ActionSource>("f");
+            var s = MakeStep("S0", a, f);
+            var mode = Make<TrainingMode>("training");
+            mode.groups.Add(Group("all", (s, false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+            mode.Handle(f);
+            mode.Handle(a);
+
+            var analyzer = Make<TrainingAnalyzer>("ta");
+            analyzer.pointsByAttempt = new[] { 3, 2, 1 };
+            var result = analyzer.Analyze(runner.Journal);
+            Assert.AreEqual(2, result.score);
+            Assert.AreEqual(3, result.maxScore);
         }
 
         [Test]

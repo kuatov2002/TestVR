@@ -50,7 +50,12 @@ namespace ScenarioBuilder
             Mode = mode;
             Journal = new List<LogEntry>();
             startTime = Time.time;
-            foreach (var l in loggers) if (l) l.Begin();
+            foreach (var l in loggers)
+            {
+                if (!l) continue;
+                try { l.Begin(); }
+                catch (Exception e) { Debug.LogException(e, l); }
+            }
             mode.Begin(this);
             Changed?.Invoke();
         }
@@ -59,7 +64,12 @@ namespace ScenarioBuilder
         {
             var entry = new LogEntry { time = Time.time - startTime, stepId = step ? step.Id : null, type = type, result = result, data = new List<LogField>(data) };
             Journal.Add(entry);
-            foreach (var l in loggers) if (l) l.Write(entry);
+            foreach (var l in loggers)
+            {
+                if (!l) continue;
+                try { l.Write(entry); }
+                catch (Exception e) { Debug.LogException(e, l); } // сбой логгера не должен останавливать прохождение
+            }
         }
 
         public void Message(string text, bool violation = true) => MessageShown?.Invoke(text, violation);

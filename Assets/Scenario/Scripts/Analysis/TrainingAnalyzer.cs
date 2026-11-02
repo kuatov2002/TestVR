@@ -1,20 +1,25 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ScenarioBuilder
 {
-    /// 10 баллов за шаг с первой попытки, 5 — со второй, 0 — с третьей и далее или если не выполнен.
+    /// Баллы за шаг зависят от попытки, с которой он выполнен (по умолчанию 10 / 5 / 0).
     /// Попытка = нарушение по шагу + финальное успешное выполнение.
     public class TrainingAnalyzer : ResultAnalyzer
     {
+        [Tooltip("Баллы за выполнение с 1-й, 2-й, … попытки. Дальше последней — 0. Первое значение — максимум за шаг.")]
+        public int[] pointsByAttempt = { 10, 5 };
+
         public override AnalysisResult Analyze(IReadOnlyList<LogEntry> journal)
         {
             var r = new AnalysisResult();
-            r.maxScore = 10 * StepCount(journal, r);
+            int max = pointsByAttempt.Length > 0 ? pointsByAttempt[0] : 0;
+            r.maxScore = max * StepCount(journal, r);
             foreach (var id in StepIds(journal))
             {
                 int violations = Violations(journal, id);
                 bool done = LastResult(journal, id) == nameof(StepStatus.Completed);
-                int points = !done ? 0 : violations == 0 ? 10 : violations == 1 ? 5 : 0;
+                int points = done && violations < pointsByAttempt.Length ? pointsByAttempt[violations] : 0;
                 r.score += points;
                 r.lines.Add($"{id}: {(done ? $"попыток {violations + 1}" : "не выполнен")}, нарушений {violations} → {points}");
             }
