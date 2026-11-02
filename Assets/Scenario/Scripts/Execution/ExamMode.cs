@@ -9,10 +9,9 @@ namespace ScenarioBuilder
         [Tooltip("Сколько нарушений в группе завершают её досрочно")]
         [Min(1)] public int violationThreshold = 2;
 
-        protected override void OnViolation(Step step, string reason)
+        protected override void OnViolation(Step step, string reason, StepGroup group)
         {
             SetResult(step, StepStatus.Failed);
-            var group = GroupOf(step);
             if (ViolationsIn(group) < violationThreshold)
             {
                 Runner.Message($"{step.title}: {reason}. Шаг провален.");

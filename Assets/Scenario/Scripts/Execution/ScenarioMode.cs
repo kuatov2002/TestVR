@@ -43,6 +43,8 @@ namespace ScenarioBuilder
         public OutOfTurnPolicy outOfTurn = OutOfTurnPolicy.Violation;
         [Tooltip("Анализатор, которым оценивается прохождение в этом режиме")]
         public ResultAnalyzer analyzer;
+        [Tooltip("Действие, после которого прохождение заканчивается досрочно (например, выход из цеха). Незавершённые шаги получают Skipped. Пусто — не используется.")]
+        public ActionSource finishAction;
 
         protected ScenarioRunner Runner { get; private set; }
 
@@ -100,14 +102,19 @@ namespace ScenarioBuilder
                     case StepVerdict.Violation: concerned = true; Violate(step, reason); break;
                 }
             }
+            if (finishAction && action == finishAction && IsRunning)
+            {
+                FinishEarly();
+                return;
+            }
             if (!concerned && outOfTurn == OutOfTurnPolicy.Violation)
                 foreach (var step in status.Keys.Where(s => status[s] == StepStatus.Pending && s.Concerns(action)).ToList())
                     if (StatusOf(step) == StepStatus.Pending) Violate(step, "Шаг ещё не доступен");
             Advance();
         }
 
-        /// Реакция режима на нарушение (запись Violation уже сделана).
-        protected abstract void OnViolation(Step step, string reason);
+        /// Реакция режима на нарушение (запись Violation уже сделана). group — группа, которой засчитано нарушение.
+        protected abstract void OnViolation(Step step, string reason, StepGroup group);
 
         protected void SetResult(Step step, StepStatus result)
         {
@@ -117,20 +124,33 @@ namespace ScenarioBuilder
             if (result == StepStatus.Completed) Runner.Message($"Выполнено: {step.title}", false);
         }
 
-        /// Пропустить незавершённые шаги группы; если группа ещё не началась, она завершится сразу при старте.
+        /// Пропустить незавершённые шаги группы.
         protected void SkipRestOfGroup(StepGroup group)
         {
             foreach (var e in group.steps)
                 if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, StepStatus.Skipped);
         }
 
+        /// Нарушение засчитывается группе, которая идёт сейчас: своей, если группа шага уже идёт,
+        /// иначе первой из идущих — будущая группа не страдает до своего начала.
         void Violate(Step step, string reason)
         {
-            violations[groupOf[step]] = ViolationsIn(groupOf[step]) + 1;
+            var group = IsGroupRunning(groupOf[step]) || running.Count == 0 ? groupOf[step] : running[0].group;
+            violations[group] = ViolationsIn(group) + 1;
             stepViolations[step] = stepViolations.GetValueOrDefault(step) + 1;
             Runner.Log(LogTypes.Violation, step, reason,
-                new LogField("group", groupOf[step].name), new LogField("attempt", stepViolations[step]));
-            OnViolation(step, reason);
+                new LogField("group", group.name), new LogField("attempt", stepViolations[step]));
+            OnViolation(step, reason, group);
+        }
+
+        void FinishEarly()
+        {
+            foreach (var step in status.Keys.Where(s => status[s] is StepStatus.Pending or StepStatus.Active).ToList())
+                SetResult(step, StepStatus.Skipped);
+            running.Clear();
+            nextGroup = groups.Count;
+            Runner.Message($"{title}: прохождение завершено досрочно, незавершённые шаги пропущены.");
+            Advance();
         }
 
         IEnumerable<Step> Batch(GroupRun run)

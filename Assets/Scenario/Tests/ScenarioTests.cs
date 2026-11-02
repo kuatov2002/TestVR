@@ -162,6 +162,48 @@ namespace ScenarioBuilder.Tests
             Assert.AreEqual("2", failed.Get("group"));
         }
 
+        [Test]
+        public void Exam_OutOfTurnViolation_CountsTowardCurrentGroup_NotFutureOne()
+        {
+            var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 4).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.violationThreshold = 1;
+            mode.groups.Add(Group("1", (s[0], false), (s[1], false)));
+            mode.groups.Add(Group("2", (s[2], false), (s[3], true)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[2]); // шаг второй группы вне очереди: он провален, порог набирает идущая группа 1
+
+            Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[0]));
+            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[1]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[3]));
+        }
+
+        [Test]
+        public void FinishAction_EndsScenario_UnfinishedStepsSkipped()
+        {
+            var a = Enumerable.Range(1, 3).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 3).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.groups.Add(Group("1", (s[0], false), (s[1], true)));
+            mode.groups.Add(Group("2", (s[2], false)));
+            mode.finishAction = a[2]; // выход — он же действие последнего шага
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[0]);
+            mode.Handle(a[2]);
+
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[1]));
+            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[2]));
+            Assert.IsFalse(runner.Journal.Any(e => e.type == LogTypes.Violation));
+            Assert.AreEqual(90, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+        }
+
         class BrokenLogger : ScenarioLogger
         {
             public override void Write(LogEntry entry) => throw new System.IO.IOException("disk full");
