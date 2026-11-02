@@ -13,6 +13,8 @@ namespace ScenarioBuilder
         public override AnalysisResult Analyze(IReadOnlyList<LogEntry> journal)
         {
             var r = new AnalysisResult { maxScore = 100 };
+            CheckJournal(journal, r);
+            if (journal.Count == 0) return r; // 0 баллов: без прохождения не за что ставить 100
             var ids = StepIds(journal);
             int penalty = 0;
             var byGroup = new Dictionary<string, int>();
@@ -23,7 +25,8 @@ namespace ScenarioBuilder
                 var last = LastResult(journal, id);
                 bool failed = Violations(journal, id) > 0 || last == nameof(StepStatus.Failed);
                 int p = failed ? failedPenalty : last == nameof(StepStatus.Completed) ? 0 : skippedPenalty;
-                string state = failed ? nameof(StepStatus.Failed) : last ?? "нет итога";
+                string state = !failed ? last ?? "нет итога"
+                    : last == nameof(StepStatus.Completed) ? "выполнен с нарушением = Failed" : nameof(StepStatus.Failed);
                 if (!failed && last == null) r.warnings.Add($"{id}: нет итогового статуса — засчитан как пропущенный.");
                 penalty += p;
                 r.lines.Add($"{id}: {state} → −{p}");

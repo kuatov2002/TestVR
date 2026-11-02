@@ -92,7 +92,7 @@ public class ScenarioView : MonoBehaviour
             {
                 if (mode.groups.Count > 1) sb.AppendLine($"<b>{(mode.IsGroupRunning(mode.groups[g]) ? "» " : "")}{mode.groups[g].name}</b>");
                 foreach (var e in mode.groups[g].steps.Where(e => e.step))
-                    sb.AppendLine($"  {Label(mode.StatusOf(e.step))}  {e.step.title}");
+                    sb.AppendLine($"  {Label(mode.StatusOf(e.step))}  {e.step.Id}  {e.step.title}");
             }
         }
         tasksText.text = sb.ToString();

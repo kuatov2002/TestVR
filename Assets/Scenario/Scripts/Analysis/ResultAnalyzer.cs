@@ -24,11 +24,23 @@ namespace ScenarioBuilder
 
         public abstract AnalysisResult Analyze(IReadOnlyList<LogEntry> journal);
 
-        /// Шаги в порядке активации, затем те, что так и не активировались (пропущенные, нарушенные вне очереди).
-        protected static List<string> StepIds(IReadOnlyList<LogEntry> journal) =>
-            journal.Where(e => !string.IsNullOrEmpty(e.stepId))
+        /// Шаги в порядке сценария (поле order), без него — в порядке активации, затем неактивированные.
+        protected static List<string> StepIds(IReadOnlyList<LogEntry> journal)
+        {
+            var order = journal.FirstOrDefault(e => e.type == LogTypes.ScenarioStarted)?.Get("order");
+            var mentioned = journal.Where(e => !string.IsNullOrEmpty(e.stepId))
                 .OrderBy(e => e.type == LogTypes.StepActivated ? 0 : 1) // OrderBy стабилен — внутри групп сохраняется порядок журнала
-                .Select(e => e.stepId).Distinct().ToList();
+                .Select(e => e.stepId);
+            return (string.IsNullOrEmpty(order) ? mentioned : order.Split(',').Concat(mentioned)).Distinct().ToList();
+        }
+
+        /// Предупреждения о неполном журнале, общие для всех анализаторов.
+        protected static void CheckJournal(IReadOnlyList<LogEntry> journal, AnalysisResult result)
+        {
+            if (journal.Count == 0) result.warnings.Add("Журнал пуст — оценивать нечего.");
+            else if (!journal.Any(e => e.type == LogTypes.ScenarioFinished))
+                result.warnings.Add("Прохождение не завершено — оценка по неполному журналу.");
+        }
 
         /// Общее число шагов сценария; если в журнале его нет — число упомянутых шагов и предупреждение.
         protected static int StepCount(IReadOnlyList<LogEntry> journal, AnalysisResult result)

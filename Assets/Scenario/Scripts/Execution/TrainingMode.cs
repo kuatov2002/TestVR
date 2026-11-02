@@ -6,7 +6,9 @@ namespace ScenarioBuilder
         protected override void OnViolation(Step step, string reason, StepGroup group)
         {
             step.ResetProgress();
-            Runner.Message(StatusOf(step) == StepStatus.Active ? $"{step.title}: {reason}. Повторите шаг." : $"{step.title}: {reason}.");
+            Runner.Message(StatusOf(step) == StepStatus.Active
+                ? $"{step.title}: {reason}. Повторите шаг."
+                : $"{step.title}: {reason} — засчитано как неудачная попытка этого шага.");
         }
     }
 }

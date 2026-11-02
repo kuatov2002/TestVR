@@ -84,7 +84,8 @@ namespace ScenarioBuilder
             IsRunning = true;
             nextGroup = 0;
             Runner.Log(LogTypes.ScenarioStarted, null, title,
-                new LogField("steps", status.Count), new LogField("startedAt", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+                new LogField("steps", status.Count), new LogField("startedAt", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")),
+                new LogField("order", string.Join(",", groups.SelectMany(g => g.steps).Where(e => e.step).Select(e => e.step.Id).Distinct())));
             Advance();
         }
 
@@ -109,7 +110,7 @@ namespace ScenarioBuilder
             Advance();
         }
 
-        /// Реакция режима на нарушение (запись Violation уже сделана). group — группа, которой засчитано нарушение.
+        /// Реакция режима на нарушение (запись Violation уже сделана). group — группа шага.
         protected abstract void OnViolation(Step step, string reason, StepGroup group);
 
         protected void SetResult(Step step, StepStatus result)
@@ -127,12 +128,12 @@ namespace ScenarioBuilder
                 if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, StepStatus.Skipped);
         }
 
-        /// Нарушение засчитывается группе, которая идёт сейчас: своей, если группа шага уже идёт,
-        /// иначе первой из идущих — будущая группа не страдает до своего начала.
+        /// В порог группы идут только нарушения, сделанные, пока она идёт. Шаг из ещё не начатой группы,
+        /// нажатый вне очереди, проваливается сам, но не закрывает ни свою будущую, ни текущую группу.
         void Violate(Step step, string reason)
         {
-            var group = IsGroupRunning(groupOf[step]) || running.Count == 0 ? groupOf[step] : running[0].group;
-            violations[group] = ViolationsIn(group) + 1;
+            var group = groupOf[step];
+            if (IsGroupRunning(group)) violations[group] = ViolationsIn(group) + 1;
             stepViolations[step] = stepViolations.GetValueOrDefault(step) + 1;
             Runner.Log(LogTypes.Violation, step, reason,
                 new LogField("group", group.name), new LogField("attempt", stepViolations[step]));

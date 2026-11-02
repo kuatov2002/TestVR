@@ -163,7 +163,7 @@ namespace ScenarioBuilder.Tests
         }
 
         [Test]
-        public void Exam_OutOfTurnViolation_CountsTowardCurrentGroup_NotFutureOne()
+        public void Exam_OutOfTurnStepOfFutureGroup_FailsOnlyThatStep()
         {
             var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
             var s = Enumerable.Range(0, 4).Select(i => MakeStep("S" + i, a[i])).ToArray();
@@ -174,12 +174,16 @@ namespace ScenarioBuilder.Tests
             var runner = Make<ScenarioRunner>("runner");
             runner.Run(mode);
 
-            mode.Handle(a[2]); // шаг второй группы вне очереди: он провален, порог набирает идущая группа 1
-
+            mode.Handle(a[2]); // шаг второй группы вне очереди: провален он один, порог не тронут ни у одной группы
             Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[2]));
-            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[0]));
-            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[1]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[0]));
+            mode.Handle(a[0]);
+            mode.Handle(a[1]);
             Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[3]));
+            mode.Handle(a[3]);
+
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(90, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
         }
 
         [Test]
@@ -275,9 +279,14 @@ namespace ScenarioBuilder.Tests
         public void Analyzer_MissingOptionalData_WarnsInsteadOfThrowing()
         {
             var journal = new List<LogEntry> { new() { stepId = "X", type = "SomethingNew" } };
-            var result = Make<ExamAnalyzer>("ea").Analyze(journal);
+            var exam = Make<ExamAnalyzer>("ea");
+            var result = exam.Analyze(journal);
             Assert.IsNotEmpty(result.warnings);
             Assert.AreEqual(95, result.score);
+
+            var empty = exam.Analyze(new List<LogEntry>()); // нет прохождения — не 100, а 0 с предупреждением
+            Assert.AreEqual(0, empty.score);
+            Assert.IsNotEmpty(empty.warnings);
         }
     }
 }
