@@ -102,12 +102,8 @@ namespace ScenarioBuilder
                     case StepVerdict.Violation: concerned = true; Violate(step, reason); break;
                 }
             }
-            if (finishAction && action == finishAction && IsRunning)
-            {
-                FinishEarly();
-                return;
-            }
-            if (!concerned && outOfTurn == OutOfTurnPolicy.Violation)
+            if (finishAction && action == finishAction) FinishEarly();
+            else if (!concerned && outOfTurn == OutOfTurnPolicy.Violation)
                 foreach (var step in status.Keys.Where(s => status[s] == StepStatus.Pending && s.Concerns(action)).ToList())
                     if (StatusOf(step) == StepStatus.Pending) Violate(step, "Шаг ещё не доступен");
             Advance();
@@ -145,12 +141,12 @@ namespace ScenarioBuilder
 
         void FinishEarly()
         {
-            foreach (var step in status.Keys.Where(s => status[s] is StepStatus.Pending or StepStatus.Active).ToList())
-                SetResult(step, StepStatus.Skipped);
+            var unfinished = status.Keys.Where(s => status[s] is StepStatus.Pending or StepStatus.Active).ToList();
+            if (unfinished.Count == 0) return; // этим же действием выполнен последний шаг — обычное завершение
+            foreach (var step in unfinished) SetResult(step, StepStatus.Skipped);
             running.Clear();
             nextGroup = groups.Count;
             Runner.Message($"{title}: прохождение завершено досрочно, незавершённые шаги пропущены.");
-            Advance();
         }
 
         IEnumerable<Step> Batch(GroupRun run)

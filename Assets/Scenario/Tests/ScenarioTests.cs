@@ -204,6 +204,28 @@ namespace ScenarioBuilder.Tests
             Assert.AreEqual(90, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
         }
 
+        [Test]
+        public void FinishAction_CompletingLastStep_IsNormalFinish()
+        {
+            var a = Enumerable.Range(1, 2).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 2).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.groups.Add(Group("1", (s[0], false), (s[1], false)));
+            mode.finishAction = a[1];
+            var runner = Make<ScenarioRunner>("runner");
+            var violationMessages = 0;
+            runner.MessageShown += (_, violation) => { if (violation) violationMessages++; };
+            runner.Run(mode);
+
+            mode.Handle(a[0]);
+            mode.Handle(a[1]);
+
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(StepStatus.Completed, mode.StatusOf(s[1]));
+            Assert.AreEqual(0, violationMessages);
+            Assert.AreEqual(100, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+        }
+
         class BrokenLogger : ScenarioLogger
         {
             public override void Write(LogEntry entry) => throw new System.IO.IOException("disk full");

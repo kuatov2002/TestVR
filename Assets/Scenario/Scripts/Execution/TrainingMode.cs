@@ -6,7 +6,7 @@ namespace ScenarioBuilder
         protected override void OnViolation(Step step, string reason, StepGroup group)
         {
             step.ResetProgress();
-            Runner.Message($"{step.title}: {reason}. Повторите шаг.");
+            Runner.Message(StatusOf(step) == StepStatus.Active ? $"{step.title}: {reason}. Повторите шаг." : $"{step.title}: {reason}.");
         }
     }
 }
