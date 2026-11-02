@@ -1,0 +1,126 @@
+using System.Collections.Generic;
+using System.Linq;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace ScenarioBuilder.Tests
+{
+    /// Контрольные примеры из задания на минимальном сценарии без сцены.
+    public class ScenarioTests
+    {
+        readonly List<GameObject> created = new();
+
+        T Make<T>(string name) where T : Component
+        {
+            var go = new GameObject(name);
+            created.Add(go);
+            return go.AddComponent<T>();
+        }
+
+        [TearDown]
+        public void TearDown() => created.ForEach(Object.DestroyImmediate);
+
+        ActionStep MakeStep(string id, ActionSource action, ActionSource forbidden = null)
+        {
+            var s = Make<ActionStep>(id);
+            s.actions.Add(action);
+            if (forbidden) s.forbidden.Add(forbidden);
+            return s;
+        }
+
+        static StepGroup Group(string name, params (Step step, bool withPrevious)[] steps) => new()
+        {
+            name = name,
+            steps = steps.Select(s => new StepEntry { step = s.step, withPrevious = s.withPrevious }).ToList(),
+        };
+
+        [Test]
+        public void Training_FirstSecondThirdAttempt_Gives15()
+        {
+            var a = Enumerable.Range(1, 3).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var f = Enumerable.Range(1, 3).Select(i => Make<ActionSource>("f" + i)).ToArray();
+            var steps = Enumerable.Range(0, 3).Select(i => MakeStep("S" + i, a[i], f[i])).ToArray();
+            var mode = Make<TrainingMode>("training");
+            mode.groups.Add(Group("all", (steps[0], false), (steps[1], true), (steps[2], true)));
+            var runner = Make<ScenarioRunner>("runner");
+
+            runner.Run(mode);
+            foreach (var act in new[] { a[0], f[1], a[1], f[2], f[2], a[2] }) mode.Handle(act);
+
+            Assert.IsFalse(mode.IsRunning);
+            var result = Make<TrainingAnalyzer>("ta").Analyze(runner.Journal);
+            Assert.AreEqual(15, result.score);
+            Assert.AreEqual(30, result.maxScore);
+            Assert.IsEmpty(result.warnings);
+        }
+
+        [Test]
+        public void Exam_TwoViolationsInGroupOfFour_SkipsRest_Gives70()
+        {
+            var a = Enumerable.Range(1, 5).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var f = Make<ActionSource>("f");
+            var g = Make<ActionSource>("g");
+            var s = Enumerable.Range(0, 5).Select(i => MakeStep("S" + i, a[i], i == 0 ? f : i == 1 ? g : null)).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.groups.Add(Group("1", (s[0], false), (s[1], true), (s[2], true), (s[3], true)));
+            mode.groups.Add(Group("2", (s[4], false)));
+            var runner = Make<ScenarioRunner>("runner");
+
+            runner.Run(mode);
+            mode.Handle(f);
+            mode.Handle(g);
+            Assert.AreEqual(StepStatus.Skipped, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[4]));
+            mode.Handle(a[4]);
+
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(70, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+        }
+
+        [Test]
+        public void MixedActivation_BatchesOpenInOrder()
+        {
+            var a = Enumerable.Range(1, 5).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 5).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<TrainingMode>("training");
+            mode.outOfTurn = OutOfTurnPolicy.Ignore;
+            mode.groups.Add(Group("all", (s[0], false), (s[1], true), (s[2], false), (s[3], false), (s[4], true)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[2]); // вне очереди и игнорируется
+            Assert.AreEqual(StepStatus.Pending, mode.StatusOf(s[2]));
+            mode.Handle(a[1]);
+            mode.Handle(a[0]);
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Pending, mode.StatusOf(s[3]));
+            mode.Handle(a[2]);
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[3]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[4]));
+            Assert.IsFalse(runner.Journal.Any(e => e.type == LogTypes.Violation));
+        }
+
+        [Test]
+        public void OutOfTurn_DefaultIsViolation()
+        {
+            var a = Enumerable.Range(1, 2).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 2).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<TrainingMode>("training");
+            mode.groups.Add(Group("all", (s[0], false), (s[1], false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[1]);
+            Assert.AreEqual(1, runner.Journal.Count(e => e.type == LogTypes.Violation && e.stepId == "S1"));
+        }
+
+        [Test]
+        public void Analyzer_MissingOptionalData_WarnsInsteadOfThrowing()
+        {
+            var journal = new List<LogEntry> { new() { stepId = "X", type = "SomethingNew" } };
+            var result = Make<ExamAnalyzer>("ea").Analyze(journal);
+            Assert.IsNotEmpty(result.warnings);
+            Assert.AreEqual(95, result.score);
+        }
+    }
+}
