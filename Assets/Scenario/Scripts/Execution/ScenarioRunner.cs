@@ -22,7 +22,8 @@ namespace ScenarioBuilder
         public List<LogEntry> Journal { get; private set; } = new();
 
         public event Action Changed;
-        public event Action<string> MessageShown;
+        /// Текст и признак нарушения (false — информационное сообщение).
+        public event Action<string, bool> MessageShown;
         public event Action Finished;
 
         float startTime;
@@ -61,7 +62,7 @@ namespace ScenarioBuilder
             foreach (var l in loggers) if (l) l.Write(entry);
         }
 
-        public void Message(string text) => MessageShown?.Invoke(text);
+        public void Message(string text, bool violation = true) => MessageShown?.Invoke(text, violation);
 
         public void NotifyFinished() => Finished?.Invoke();
 

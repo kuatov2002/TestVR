@@ -15,7 +15,12 @@ public class ScenarioView : MonoBehaviour
     public GameObject resultPanel, logPanel;
     public Dropdown analyzerDropdown;
 
-    const int LogLines = 150; // shortcut: legacy Text ограничен ~16k символов; для длинных журналов — виртуализированный список
+    [Tooltip("Сколько секунд показывать сообщение о нарушении / об успехе")]
+    public float violationMessageTime = 6, infoMessageTime = 3;
+
+    const int LogLines = 150; // у legacy Text лимит ~16k символов, поэтому показываем хвост журнала
+
+    float messageHideTime;
 
     void OnEnable()
     {
@@ -37,8 +42,13 @@ public class ScenarioView : MonoBehaviour
         analyzerDropdown.AddOptions(analyzers.Select(a => a.title).ToList());
         resultPanel.SetActive(false);
         logPanel.SetActive(false);
-        messageText.text = "";
+        ShowMessage("", false);
         Refresh();
+    }
+
+    void Update()
+    {
+        if (messageText.text != "" && Time.time > messageHideTime) ShowMessage("", false);
     }
 
     public void StartMode(int index) => runner.Restart(index);
@@ -62,7 +72,13 @@ public class ScenarioView : MonoBehaviour
 
     void ShowResult(ResultAnalyzer analyzer) => resultText.text = $"<b>{analyzer.title}</b>\n{analyzer.Analyze(runner.Journal)}";
 
-    void ShowMessage(string text) => messageText.text = text;
+    void ShowMessage(string text, bool violation)
+    {
+        messageText.text = text;
+        messageText.color = violation ? new Color(1f, 0.55f, 0.5f) : new Color(0.55f, 1f, 0.55f);
+        messageText.transform.parent.gameObject.SetActive(text != "");
+        messageHideTime = Time.time + (violation ? violationMessageTime : infoMessageTime);
+    }
 
     void Refresh()
     {
@@ -74,7 +90,7 @@ public class ScenarioView : MonoBehaviour
             sb.AppendLine($"<b>{mode.title}</b>{(mode.IsRunning ? "" : " — завершено")}");
             for (int g = 0; g < mode.groups.Count; g++)
             {
-                if (mode.groups.Count > 1) sb.AppendLine($"<b>{(g == mode.CurrentGroupIndex ? "» " : "")}{mode.groups[g].name}</b>");
+                if (mode.groups.Count > 1) sb.AppendLine($"<b>{(mode.IsGroupRunning(mode.groups[g]) ? "» " : "")}{mode.groups[g].name}</b>");
                 foreach (var e in mode.groups[g].steps.Where(e => e.step))
                     sb.AppendLine($"  {Label(mode.StatusOf(e.step))}  {e.step.title}");
             }

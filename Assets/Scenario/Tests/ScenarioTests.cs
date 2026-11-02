@@ -115,6 +115,53 @@ namespace ScenarioBuilder.Tests
         }
 
         [Test]
+        public void Exam_ParallelGroups_HaveOwnThresholds()
+        {
+            var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var f = Make<ActionSource>("f");
+            var s = Enumerable.Range(0, 4).Select(i => MakeStep("S" + i, a[i], i == 2 ? f : null)).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.violationThreshold = 1;
+            mode.groups.Add(Group("A", (s[0], false), (s[1], false)));
+            var b = Group("B", (s[2], false));
+            b.withPrevious = true;
+            mode.groups.Add(b);
+            mode.groups.Add(Group("C", (s[3], false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[0]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[2]));
+            mode.Handle(f); // порог группы B, группа A продолжается
+            Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[0]));
+            Assert.AreEqual(StepStatus.Pending, mode.StatusOf(s[3]));
+            mode.Handle(a[0]);
+            mode.Handle(a[1]);
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[3]));
+        }
+
+        [Test]
+        public void Exam_OutOfTurnFailure_IsLoggedWithStepsOwnGroup()
+        {
+            var a = Enumerable.Range(1, 2).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var s = Enumerable.Range(0, 2).Select(i => MakeStep("S" + i, a[i])).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.groups.Add(Group("1", (s[0], false)));
+            mode.groups.Add(Group("2", (s[1], false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[1]);
+            mode.Handle(a[0]);
+
+            Assert.IsFalse(mode.IsRunning);
+            var failed = runner.Journal.Single(e => e.type == LogTypes.StepFinished && e.stepId == "S1");
+            Assert.AreEqual("Failed", failed.result);
+            Assert.AreEqual("2", failed.Get("group"));
+        }
+
+        [Test]
         public void Analyzer_MissingOptionalData_WarnsInsteadOfThrowing()
         {
             var journal = new List<LogEntry> { new() { stepId = "X", type = "SomethingNew" } };

@@ -25,12 +25,15 @@ namespace ScenarioBuilder
     public class StepGroup
     {
         public string name;
+        [Tooltip("Начать одновременно с предыдущей группой (иначе — после её завершения)")]
+        public bool withPrevious;
         [Tooltip("Порядок активации: шаги с галочкой «вместе с предыдущим» открываются одной пачкой; следующая пачка — после завершения текущей")]
         public List<StepEntry> steps = new();
     }
 
     /// Режим прохождения: раскладка шагов по группам/пачкам и правила реакции на нарушения.
-    /// Группы идут последовательно, внутри группы — пачки одновременно активных шагов.
+    /// Группы идут по очереди (или пачкой, если отмечены «вместе с предыдущей»),
+    /// внутри группы — пачки одновременно активных шагов.
     /// Новый режим = наследник с собственным OnViolation.
     public abstract class ScenarioMode : MonoBehaviour
     {
@@ -42,32 +45,49 @@ namespace ScenarioBuilder
         public ResultAnalyzer analyzer;
 
         protected ScenarioRunner Runner { get; private set; }
-        protected int GroupViolations { get; private set; }
+
+        class GroupRun
+        {
+            public StepGroup group;
+            public int batchStart, batchEnd;
+        }
 
         readonly Dictionary<Step, StepStatus> status = new();
-        int group, batchStart, batchEnd;
+        readonly Dictionary<Step, StepGroup> groupOf = new();
+        readonly Dictionary<StepGroup, int> violations = new();
+        readonly List<GroupRun> running = new();
+        int nextGroup;
 
         public bool IsRunning { get; private set; }
-        public int CurrentGroupIndex => group;
-        public StepGroup CurrentGroup => group >= 0 && group < groups.Count ? groups[group] : null;
+        public bool IsGroupRunning(StepGroup group) => running.Any(r => r.group == group);
         public StepStatus StatusOf(Step step) => status.TryGetValue(step, out var s) ? s : StepStatus.Pending;
+        protected StepGroup GroupOf(Step step) => groupOf[step];
+        protected int ViolationsIn(StepGroup group) => violations.TryGetValue(group, out var n) ? n : 0;
 
         public void Begin(ScenarioRunner runner)
         {
             Runner = runner;
             status.Clear();
-            foreach (var e in groups.SelectMany(g => g.steps).Where(e => e.step)) status[e.step] = StepStatus.Pending;
+            groupOf.Clear();
+            violations.Clear();
+            running.Clear();
+            foreach (var g in groups)
+                foreach (var e in g.steps.Where(e => e.step))
+                {
+                    status[e.step] = StepStatus.Pending;
+                    groupOf[e.step] = g;
+                }
             IsRunning = true;
-            group = -1;
+            nextGroup = 0;
             Runner.Log(LogTypes.ScenarioStarted, null, title, new LogField("steps", status.Count));
-            NextGroup();
+            Advance();
         }
 
         public void Handle(ActionSource action)
         {
             if (!IsRunning) return;
             bool concerned = false;
-            foreach (var step in CurrentBatch().ToList())
+            foreach (var step in running.SelectMany(Batch).ToList())
             {
                 if (StatusOf(step) != StepStatus.Active) continue; // могли пропустить из-за порога
                 switch (step.Handle(action, out var reason))
@@ -79,9 +99,8 @@ namespace ScenarioBuilder
             }
             if (!concerned && outOfTurn == OutOfTurnPolicy.Violation)
                 foreach (var step in status.Keys.Where(s => status[s] == StepStatus.Pending && s.Concerns(action)).ToList())
-                    if (IsRunning && StatusOf(step) == StepStatus.Pending) Violate(step, "Шаг ещё не доступен");
-
-            if (IsRunning && !CurrentBatch().Any(s => StatusOf(s) == StepStatus.Active)) NextBatch();
+                    if (StatusOf(step) == StepStatus.Pending) Violate(step, "Шаг ещё не доступен");
+            Advance();
         }
 
         /// Реакция режима на нарушение (запись Violation уже сделана).
@@ -90,61 +109,73 @@ namespace ScenarioBuilder
         protected void SetResult(Step step, StepStatus result)
         {
             status[step] = result;
-            Runner.Log(LogTypes.StepFinished, step, result.ToString(), new LogField("group", CurrentGroup?.name));
+            Runner.Log(LogTypes.StepFinished, step, result.ToString(), new LogField("group", groupOf[step].name));
+            if (result == StepStatus.Completed) Runner.Message($"Выполнено: {step.title}", false);
         }
 
-        /// Пропустить незавершённые шаги текущей группы и перейти к следующей.
-        protected void SkipRestOfGroup()
+        /// Пропустить незавершённые шаги группы; если группа ещё не началась, она завершится сразу при старте.
+        protected void SkipRestOfGroup(StepGroup group)
         {
-            foreach (var e in CurrentGroup.steps)
+            foreach (var e in group.steps)
                 if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, StepStatus.Skipped);
-            NextGroup();
         }
 
         void Violate(Step step, string reason)
         {
-            GroupViolations++;
-            Runner.Log(LogTypes.Violation, step, reason);
+            violations[groupOf[step]] = ViolationsIn(groupOf[step]) + 1;
+            Runner.Log(LogTypes.Violation, step, reason, new LogField("group", groupOf[step].name));
             OnViolation(step, reason);
         }
 
-        IEnumerable<Step> CurrentBatch()
+        IEnumerable<Step> Batch(GroupRun run)
         {
-            if (CurrentGroup == null) yield break;
-            for (int i = batchStart; i < batchEnd; i++)
-                if (CurrentGroup.steps[i].step) yield return CurrentGroup.steps[i].step;
+            for (int i = run.batchStart; i < run.batchEnd; i++)
+                if (run.group.steps[i].step) yield return run.group.steps[i].step;
         }
 
-        void NextGroup()
+        /// Открывает следующие пачки и группы, пока есть что выполнять; иначе завершает сценарий.
+        void Advance()
         {
-            if (++group >= groups.Count)
+            while (IsRunning)
             {
-                IsRunning = false;
-                Runner.Log(LogTypes.ScenarioFinished, null, title);
-                Runner.NotifyFinished();
-                return;
+                foreach (var run in running.ToList())
+                    if (!Batch(run).Any(s => StatusOf(s) == StepStatus.Active)) NextBatch(run);
+                if (running.Count > 0) return;
+                if (nextGroup >= groups.Count)
+                {
+                    IsRunning = false;
+                    Runner.Log(LogTypes.ScenarioFinished, null, title);
+                    Runner.NotifyFinished();
+                    return;
+                }
+                do
+                {
+                    var group = groups[nextGroup++];
+                    Runner.Log(LogTypes.GroupStarted, null, group.name);
+                    running.Add(new GroupRun { group = group });
+                } while (nextGroup < groups.Count && groups[nextGroup].withPrevious);
             }
-            GroupViolations = 0;
-            batchEnd = 0;
-            Runner.Log(LogTypes.GroupStarted, null, CurrentGroup.name);
-            NextBatch();
         }
 
-        void NextBatch()
+        void NextBatch(GroupRun run)
         {
-            var entries = CurrentGroup.steps;
+            var entries = run.group.steps;
             do
             {
-                if (batchEnd >= entries.Count) { NextGroup(); return; }
-                batchStart = batchEnd++;
-                while (batchEnd < entries.Count && entries[batchEnd].withPrevious) batchEnd++;
-                foreach (var step in CurrentBatch().Where(s => StatusOf(s) == StepStatus.Pending))
+                if (run.batchEnd >= entries.Count)
+                {
+                    running.Remove(run);
+                    return;
+                }
+                run.batchStart = run.batchEnd++;
+                while (run.batchEnd < entries.Count && entries[run.batchEnd].withPrevious) run.batchEnd++;
+                foreach (var step in Batch(run).Where(s => StatusOf(s) == StepStatus.Pending))
                 {
                     status[step] = StepStatus.Active;
                     step.ResetProgress();
                     Runner.Log(LogTypes.StepActivated, step);
                 }
-            } while (!CurrentBatch().Any(s => StatusOf(s) == StepStatus.Active)); // вся пачка уже провалена вне очереди
+            } while (!Batch(run).Any(s => StatusOf(s) == StepStatus.Active)); // вся пачка уже провалена или пропущена
         }
     }
 }
