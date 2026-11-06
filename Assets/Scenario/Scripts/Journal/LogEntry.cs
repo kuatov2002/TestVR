@@ -43,7 +43,7 @@ namespace ScenarioBuilder
         public const string GroupStarted = "GroupStarted";       // result = группа
         public const string Action = "Action";                   // result = название действия
         public const string StepActivated = "StepActivated";
-        public const string Violation = "Violation";             // result = причина, data: group, attempt (номер неудачной попытки)
+        public const string Violation = "Violation";             // result = причина, data: group, attempt (номер неудачной попытки), repeat (ошибка на уже проваленном шаге)
         public const string StepFinished = "StepFinished";       // result = Completed | Failed | Skipped, data: group, violations
         public const string ScenarioFinished = "ScenarioFinished";
     }

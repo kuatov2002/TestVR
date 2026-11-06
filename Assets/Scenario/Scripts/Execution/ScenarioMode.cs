@@ -93,6 +93,13 @@ namespace ScenarioBuilder
         {
             if (!IsRunning) return;
             bool concerned = false;
+            // до активных шагов: шаг, проваленный этим же действием, не должен сразу засчитаться повторно
+            foreach (var step in running.SelectMany(r => r.group.steps).Select(e => e.step).Where(s => s && StatusOf(s) == StepStatus.Failed).ToList())
+                if (step.Handle(action, out var repeatReason) == StepVerdict.Violation)
+                {
+                    concerned = true;
+                    RepeatViolate(step, repeatReason);
+                }
             foreach (var step in running.SelectMany(Batch).ToList())
             {
                 if (StatusOf(step) != StepStatus.Active) continue; // могли пропустить из-за порога
@@ -113,6 +120,9 @@ namespace ScenarioBuilder
         /// Реакция режима на нарушение (запись Violation уже сделана). group — группа шага.
         protected abstract void OnViolation(Step step, string reason, StepGroup group);
 
+        /// Новая ошибка на уже проваленном шаге идущей группы (запись Violation уже сделана). По умолчанию — ничего.
+        protected virtual void OnRepeatViolation(Step step, string reason, StepGroup group) { }
+
         protected void SetResult(Step step, StepStatus result)
         {
             status[step] = result;
@@ -121,11 +131,11 @@ namespace ScenarioBuilder
             if (result == StepStatus.Completed) Runner.Message($"Выполнено: {step.title}", false);
         }
 
-        /// Пропустить незавершённые шаги группы.
-        protected void SkipRestOfGroup(StepGroup group)
+        /// Завершить незавершённые шаги группы с указанным итогом (Skipped — по порогу, Failed — провал группы).
+        protected void FinishRestOfGroup(StepGroup group, StepStatus result)
         {
             foreach (var e in group.steps)
-                if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, StepStatus.Skipped);
+                if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, result);
         }
 
         /// В порог группы идут только нарушения, сделанные, пока она идёт. Шаг из ещё не начатой группы,
@@ -138,6 +148,14 @@ namespace ScenarioBuilder
             Runner.Log(LogTypes.Violation, step, reason,
                 new LogField("group", group.name), new LogField("attempt", stepViolations[step]));
             OnViolation(step, reason, group);
+        }
+
+        void RepeatViolate(Step step, string reason)
+        {
+            stepViolations[step] = stepViolations.GetValueOrDefault(step) + 1;
+            Runner.Log(LogTypes.Violation, step, reason, new LogField("group", groupOf[step].name),
+                new LogField("attempt", stepViolations[step]), new LogField("repeat", true));
+            OnRepeatViolation(step, reason, groupOf[step]);
         }
 
         void FinishEarly()

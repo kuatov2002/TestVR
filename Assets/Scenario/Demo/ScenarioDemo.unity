@@ -2499,6 +2499,7 @@ MonoBehaviour:
   analyzer: {fileID: 621572028}
   finishAction: {fileID: 1974837120}
   violationThreshold: 2
+  failGroupOnRepeat: 1
 --- !u!4 &592499941
 Transform:
   m_ObjectHideFlags: 0

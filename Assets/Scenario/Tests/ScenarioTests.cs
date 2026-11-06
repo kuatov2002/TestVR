@@ -115,6 +115,33 @@ namespace ScenarioBuilder.Tests
             Assert.AreEqual(1, runner.Journal.Count(e => e.type == LogTypes.Violation && e.stepId == "S1"));
         }
 
+        [TestCase(true, StepStatus.Failed, 80)]
+        [TestCase(false, StepStatus.Active, 90)]
+        public void Exam_RepeatViolationOnFailedStep_FailsWholeGroup(bool failGroupOnRepeat, StepStatus s2After, int score)
+        {
+            var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var f = Make<ActionSource>("f");
+            var s = Enumerable.Range(0, 4).Select(i => MakeStep("S" + i, a[i], i == 0 ? f : null)).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.violationThreshold = 3; // порог не мешает: проверяем именно повторную ошибку
+            mode.failGroupOnRepeat = failGroupOnRepeat;
+            mode.groups.Add(Group("1", (s[0], false), (s[1], true), (s[2], true)));
+            mode.groups.Add(Group("2", (s[3], false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(f);    // S0 провален
+            mode.Handle(a[1]); // S1 выполнен
+            mode.Handle(f);    // вторая ошибка на проваленном S0
+
+            Assert.AreEqual(StepStatus.Completed, mode.StatusOf(s[1]));
+            Assert.AreEqual(s2After, mode.StatusOf(s[2]));
+            mode.Handle(a[2]);
+            mode.Handle(a[3]);
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(score, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+        }
+
         [Test]
         public void Exam_ParallelGroups_HaveOwnThresholds()
         {
