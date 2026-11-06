@@ -60,6 +60,7 @@ namespace ScenarioBuilder
         readonly Dictionary<Step, int> stepViolations = new();
         readonly List<GroupRun> running = new();
         int nextGroup;
+        const string NotAvailable = "Шаг ещё не доступен";
 
         public bool IsRunning { get; private set; }
         public bool IsGroupRunning(StepGroup group) => running.Any(r => r.group == group);
@@ -94,12 +95,19 @@ namespace ScenarioBuilder
             if (!IsRunning) return;
             bool concerned = false;
             // до активных шагов: шаг, проваленный этим же действием, не должен сразу засчитаться повторно
-            foreach (var step in running.SelectMany(r => r.group.steps).Select(e => e.step).Where(s => s && StatusOf(s) == StepStatus.Failed).ToList())
-                if (step.Handle(action, out var repeatReason) == StepVerdict.Violation)
+            foreach (var step in status.Keys.Where(s => status[s] == StepStatus.Failed).ToList())
+            {
+                string reason;
+                if (IsGroupRunning(groupOf[step]))
                 {
-                    concerned = true;
-                    RepeatViolate(step, repeatReason);
+                    if (step.Handle(action, out reason) != StepVerdict.Violation) continue;
                 }
+                else if (groups.IndexOf(groupOf[step]) >= nextGroup && outOfTurn == OutOfTurnPolicy.Violation && step.Concerns(action))
+                    reason = NotAvailable; // группа шага ещё впереди — снова вне очереди
+                else continue; // группа уже закончилась
+                concerned = true;
+                RepeatViolate(step, reason);
+            }
             foreach (var step in running.SelectMany(Batch).ToList())
             {
                 if (StatusOf(step) != StepStatus.Active) continue; // могли пропустить из-за порога
@@ -113,14 +121,14 @@ namespace ScenarioBuilder
             if (finishAction && action == finishAction) FinishEarly();
             else if (!concerned && outOfTurn == OutOfTurnPolicy.Violation)
                 foreach (var step in status.Keys.Where(s => status[s] == StepStatus.Pending && s.Concerns(action)).ToList())
-                    if (StatusOf(step) == StepStatus.Pending) Violate(step, "Шаг ещё не доступен");
+                    if (StatusOf(step) == StepStatus.Pending) Violate(step, NotAvailable);
             Advance();
         }
 
         /// Реакция режима на нарушение (запись Violation уже сделана). group — группа шага.
         protected abstract void OnViolation(Step step, string reason, StepGroup group);
 
-        /// Новая ошибка на уже проваленном шаге идущей группы (запись Violation уже сделана). По умолчанию — ничего.
+        /// Новая ошибка на уже проваленном шаге идущей или будущей группы (запись Violation уже сделана). По умолчанию — ничего.
         protected virtual void OnRepeatViolation(Step step, string reason, StepGroup group) { }
 
         protected void SetResult(Step step, StepStatus result)
@@ -132,14 +140,21 @@ namespace ScenarioBuilder
         }
 
         /// Завершить незавершённые шаги группы с указанным итогом (Skipped — по порогу, Failed — провал группы).
-        protected void FinishRestOfGroup(StepGroup group, StepStatus result)
+        /// false — завершать было нечего.
+        protected bool FinishRestOfGroup(StepGroup group, StepStatus result)
         {
+            bool any = false;
             foreach (var e in group.steps)
-                if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active) SetResult(e.step, result);
+                if (e.step && StatusOf(e.step) is StepStatus.Pending or StepStatus.Active)
+                {
+                    SetResult(e.step, result);
+                    any = true;
+                }
+            return any;
         }
 
         /// В порог группы идут только нарушения, сделанные, пока она идёт. Шаг из ещё не начатой группы,
-        /// нажатый вне очереди, проваливается сам, но не закрывает ни свою будущую, ни текущую группу.
+        /// нажатый вне очереди, проваливается сам, но порог не трогает ни своей будущей, ни текущей группы.
         void Violate(Step step, string reason)
         {
             var group = groupOf[step];

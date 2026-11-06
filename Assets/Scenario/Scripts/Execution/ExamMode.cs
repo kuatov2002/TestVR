@@ -25,13 +25,10 @@ namespace ScenarioBuilder
 
         protected override void OnRepeatViolation(Step step, string reason, StepGroup group)
         {
-            if (!failGroupOnRepeat)
-            {
+            if (failGroupOnRepeat && FinishRestOfGroup(group, StepStatus.Failed))
+                Runner.Message($"{step.title}: {reason}. Повторная ошибка на проваленном шаге — группа «{group.name}» провалена.");
+            else
                 Runner.Message($"{step.title}: {reason}. Шаг уже провален.");
-                return;
-            }
-            FinishRestOfGroup(group, StepStatus.Failed);
-            Runner.Message($"{step.title}: {reason}. Повторная ошибка на проваленном шаге — группа «{group.name}» провалена.");
         }
     }
 }

@@ -143,6 +143,36 @@ namespace ScenarioBuilder.Tests
         }
 
         [Test]
+        public void Exam_RepeatOutOfTurnOnFailedStepOfFutureGroup_FailsThatGroup()
+        {
+            var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
+            var f = Make<ActionSource>("f");
+            var s = Enumerable.Range(0, 4).Select(i => MakeStep("S" + i, a[i], i == 0 ? f : null)).ToArray();
+            var mode = Make<ExamMode>("exam");
+            mode.groups.Add(Group("1", (s[0], false)));
+            mode.groups.Add(Group("2", (s[1], false), (s[2], true)));
+            mode.groups.Add(Group("3", (s[3], false)));
+            var runner = Make<ScenarioRunner>("runner");
+            runner.Run(mode);
+
+            mode.Handle(a[1]); // вне очереди: провален только S1
+            Assert.AreEqual(StepStatus.Pending, mode.StatusOf(s[2]));
+            mode.Handle(a[1]); // снова тот же проваленный шаг — проваливается вся группа 2
+            Assert.AreEqual(StepStatus.Failed, mode.StatusOf(s[2]));
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[0]));
+
+            mode.Handle(a[0]);   // группа 1 выполнена, группа 2 уже провалена — сразу группа 3
+            Assert.AreEqual(StepStatus.Active, mode.StatusOf(s[3]));
+            int entries = runner.Journal.Count;
+            mode.Handle(f);      // запрещённое действие шага закончившейся группы ничего не меняет
+            Assert.AreEqual(entries, runner.Journal.Count);
+            mode.Handle(a[3]);
+
+            Assert.IsFalse(mode.IsRunning);
+            Assert.AreEqual(80, Make<ExamAnalyzer>("ea").Analyze(runner.Journal).score);
+        }
+
+        [Test]
         public void Exam_ParallelGroups_HaveOwnThresholds()
         {
             var a = Enumerable.Range(1, 4).Select(i => Make<ActionSource>("a" + i)).ToArray();
